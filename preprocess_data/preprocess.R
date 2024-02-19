@@ -51,37 +51,37 @@ assay_lst <- assays(PAADdata)
 CNA <- assay_lst[["PAAD_CNASNP-20160128"]] #assay_lst[[1]]と同じ。CNAほとんどのセルがNAなんだけど、大丈夫なん？
 sum(is.na(CNA))
   #--->空のセル多すぎるけど、、、
-colnames(CNA) <- gsub("(\\-[[:alnum:]]+\\-[[:alnum:]]+\\-[[:alnum:]]+\\-[[:digit:]]+)$", "", colnames(CNA))
+#colnames(CNA) <- gsub("(\\-[[:alnum:]]+\\-[[:alnum:]]+\\-[[:alnum:]]+\\-[[:digit:]]+)$", "", colnames(CNA))
   #--->CNAのコラム名の"-01A-11D-A40V-01"とかの部分を""に置き換える
-CNA <- log2(CNA +1)
+#CNA <- log2(CNA +1)
   #--->CNAのすべてのセルに対して対数変換を行う
-dim(CNA) #[1] 203871    368
+#dim(CNA) #[1] 203871    368
 
-length(unique(colnames(CNA))) #[1] 185　複数のコラムが重複している 
-CNA <- CNA[,unique(colnames(CNA))]
-dim(CNA) #[1] 203871    185
+#length(unique(colnames(CNA))) #[1] 185　複数のコラムが重複している 
+#CNA <- CNA[,unique(colnames(CNA))]
+#dim(CNA) #[1] 203871    185
 
-colnames(CNA) <- gsub("\\-", ".", colnames(CNA))
+#colnames(CNA) <- gsub("\\-", ".", colnames(CNA))
   #--->"TCGA-YY-A8LH"→"TCGA.YY.A8LH"
 
-CNA <- CNA[, intersect(colnames(CNA), rownames(dfcolData))]
+#CNA <- CNA[, intersect(colnames(CNA), rownames(dfcolData))]
   #--->今の状態のCNAデータには、全部のhistological typeのデータが含まれているので
        #"pancreas-adenocarcinoma-other subtype","pancreas-adenocarcinoma ductal type"
        #のみに絞る
-CNA <- t(CNA)
+#CNA <- t(CNA)
 
 
 ##Copy number variation
 CNV <- assay_lst[["PAAD_CNVSNP-20160128"]]
 sum(is.na(CNV))
   #--->こっちもほぼ空だ
-toBeRemoved_CNV <- which(data.frame(map(CNV, ~sum(is.na(.))))> nrow(dfcolData)*0.3)
-CNV_new <- CNV[, toBeRemoved_CNV]
+#toBeRemoved_CNV <- which(data.frame(map(CNV, ~sum(is.na(.))))> nrow(dfcolData)*0.3)
+#CNV_new <- CNV[, toBeRemoved_CNV]
 
 ##Gene expression
 Exp <- assay_lst[["PAAD_RNASeq2GeneNorm-20160128"]]
 sum(is.na(Exp))
-  #--->発現数のデータはNA少ないね
+  #--->発現量のデータはNA少ないね
 colnames(Exp) <- gsub("\\-[[:digit:]][[:digit:]]", "", colnames(Exp))
   #--->Expのコラム名の"-01"とかの部分を""に置き換える。まあほとんど-01だけどたまに-11がある。
 Exp <- log2(Exp + 1)
