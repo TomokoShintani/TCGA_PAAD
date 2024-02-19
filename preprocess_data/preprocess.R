@@ -12,10 +12,10 @@ library(purrr)
 library(dplyr)
 library(stringr)
 
-curatedTCGAData(deseaseCode="PAAD", version="1.1.38")#これでassaysの種類を確認
+curatedTCGAData(diseaseCode="PAAD", version="1.1.38")#これでassaysの種類を確認
 
-PAADdata <- curatedTCGAData("PAAD",
-                            assays=c("CNASNP","GISTIC_ThresholdedByGene","Methylation","Mutation","RNASeq2GeneNorm"),
+PAADdata <- curatedTCGAData(diseaseCode="PAAD",
+                            assays=c("CNASNP","CNVSNP","GISTIC_ThresholdedByGene","Methylation","Mutation","RNASeq2GeneNorm"),
                             dry.run = FALSE, version="1.1.38")
 
 dim(colData(PAADdata))  #[1] 185 979
@@ -43,8 +43,11 @@ dfcolData <- filter(dfcolData, patient.histological.type %in% c("pancreas-adenoc
 #assayごとにデータを分類
 assay_lst <- assays(PAADdata)
 
+
 ##Copy number alteration
 CNA <- assay_lst[["PAAD_CNASNP-20160128"]] #assay_lst[[1]]と同じ。CNAほとんどのセルがNAなんだけど、大丈夫なん？
+sum(is.na(CNA))
+  #--->からのセル多すぎるけど、、、
 colnames(CNA) <- gsub("(\\-[[:alnum:]]+\\-[[:alnum:]]+\\-[[:alnum:]]+\\-[[:digit:]]+)$", "", colnames(CNA))
   #--->CNAのコラム名の"-01A-11D-A40V-01"とかの部分を""に置き換える
 CNA <- log2(CNA +1)
@@ -62,8 +65,12 @@ CNA <- CNA[, intersect(colnames(CNA), rownames(dfcolData))]
   #--->今の状態のCNAデータには、全部のhistological typeのデータが含まれているので
        #"pancreas-adenocarcinoma-other subtype","pancreas-adenocarcinoma ductal type"
        #のみに絞る
+CNA <- t(CNA)
 
-##
+
+##Copy number variation
+CNV <- assay_lst[["PAAD_CNVSNP-20160128"]]
+sum(is.na(CNV))
 
 ##
 
