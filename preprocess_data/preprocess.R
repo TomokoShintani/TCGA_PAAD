@@ -83,14 +83,27 @@ Exp <- assay_lst[["PAAD_RNASeq2GeneNorm-20160128"]]
 sum(is.na(Exp))
   #--->発現数のデータはNA少ないね
 colnames(Exp) <- gsub("\\-[[:digit:]][[:digit:]]", "", colnames(Exp))
-#--->Expのコラム名の"-01A-11D-A40V-01"とかの部分を""に置き換える
+  #--->Expのコラム名の"-01"とかの部分を""に置き換える。まあほとんど-01だけどたまに-11がある。
 Exp <- log2(Exp + 1)
-#--->Expのすべてのセルに対して対数変換を行う。警告出るのはNAのデータがあるからだから、無視
+  #--->Expのすべてのセルに対して対数変換を行う。警告出るのはNAのデータがあるからだから、無視
+dim(Exp) #[1] 18465   183
+length(unique(colnames(Exp))) #[1] 177
+Exp <- Exp[, unique(colnames(Exp))]
+colnames(Exp) <- gsub("\\-", ".", colnames(Exp))
+Exp <- Exp[, intersect(colnames(Exp), rownames(dfcolData))]
+  #--->今の状態のExpデータには、全部のhistological typeのデータが含まれているので
+       #"pancreas-adenocarcinoma-other subtype","pancreas-adenocarcinoma ductal type"
+       #のみに絞る
+Exp <- t(Exp)
+sum(is.na(Exp[, 'BRCA2']))
 
+#発現変動が小さすぎる遺伝子のデータは取り除く
+##NAデータそのままでsd計算した場合
+SDs <- apply(Exp,2,sd)　#2番目の引数で2を指定しているので、各列に対して関数を適用することになる。
+orderedGenes <- names(SDs[order(SDs, decreasing = TRUE)[1:2000]])
+Exp <- Exp[, orderedGenes]
 
-#Genes of Interestだけのデータに絞る
-
-
+##NAデータを0で埋めて計算した場合
 
 
 ##
