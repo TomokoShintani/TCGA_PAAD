@@ -12,16 +12,18 @@ library(purrr)
 library(dplyr)
 library(stringr)
 
-curatedTCGAData(diseaseCode="PAAD", version="1.1.38")#これでassaysの種類を確認
+curatedTCGAData(diseaseCode="PAAD", version="2.1.1")#これでassaysの種類を確認
 
 PAADdata <- curatedTCGAData(diseaseCode="PAAD",
                             assays=c("CNASNP","CNVSNP","GISTIC_ThresholdedByGene","Methylation","Mutation","RNASeq2GeneNorm"),
-                            dry.run = FALSE, version="1.1.38")
-
+                            dry.run = FALSE, version="2.1.1")
+#View(colData(PAADdata)) どういう階層になってるのか見てみた。
 dim(colData(PAADdata))  #[1] 185 979
 
-## col_data for graph annotation
-dfcolData <- data.frame(matrix(nrow = nrow(colData(PAADdata))))
+table(PAADdata@colData@listData["histological_type"])
+
+## make data frame
+dfcolData <- data.frame(matrix(nrow = nrow(colData(PAADdata)))) #これに列方向にjoinしていく
 for(i in 1:ncol(colData(PAADdata))){dfcolData <- cbind(dfcolData, PAADdata@colData@listData[i])}
 dfcolData <- dfcolData[,-1] #一番目の列を削除
 #dim(dfcolData) [1] 185 979
@@ -30,6 +32,7 @@ colnames(dfcolData) <- gsub("\\-|\\_", ".", colnames(dfcolData)) #列名に含�
 rownames(dfcolData) <- gsub("\\-|\\_", ".", rownames(dfcolData)) #行名に対しても同様の操作をする
 
 toBeRemoved <- which(data.frame(map(dfcolData, ~sum(is.na(.))))> nrow(dfcolData)*0.3)# Rの~はlambda関数みたいなもん
+  #--->からのデータが全行の30%以上を占めるコラムを削除
 dfcolData <- dfcolData[,-(toBeRemoved)]
 #dim(dfcolData) [1] 185 369
 
@@ -47,7 +50,7 @@ assay_lst <- assays(PAADdata)
 ##Copy number alteration
 CNA <- assay_lst[["PAAD_CNASNP-20160128"]] #assay_lst[[1]]と同じ。CNAほとんどのセルがNAなんだけど、大丈夫なん？
 sum(is.na(CNA))
-  #--->からのセル多すぎるけど、、、
+  #--->空のセル多すぎるけど、、、
 colnames(CNA) <- gsub("(\\-[[:alnum:]]+\\-[[:alnum:]]+\\-[[:alnum:]]+\\-[[:digit:]]+)$", "", colnames(CNA))
   #--->CNAのコラム名の"-01A-11D-A40V-01"とかの部分を""に置き換える
 CNA <- log2(CNA +1)
@@ -71,8 +74,24 @@ CNA <- t(CNA)
 ##Copy number variation
 CNV <- assay_lst[["PAAD_CNVSNP-20160128"]]
 sum(is.na(CNV))
+  #--->こっちもほぼ空だ
+toBeRemoved_CNV <- which(data.frame(map(CNV, ~sum(is.na(.))))> nrow(dfcolData)*0.3)
+CNV_new <- CNV[, toBeRemoved_CNV]
 
-##
+##Gene expression
+Exp <- assay_lst[["PAAD_RNASeq2GeneNorm-20160128"]]
+sum(is.na(Exp))
+  #--->発現数のデータはNA少ないね
+colnames(Exp) <- gsub("\\-[[:digit:]][[:digit:]]", "", colnames(Exp))
+#--->Expのコラム名の"-01A-11D-A40V-01"とかの部分を""に置き換える
+Exp <- log2(Exp + 1)
+#--->Expのすべてのセルに対して対数変換を行う。警告出るのはNAのデータがあるからだから、無視
+
+
+#Genes of Interestだけのデータに絞る
+
+
+
 
 ##
 
