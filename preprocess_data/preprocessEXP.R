@@ -53,3 +53,6 @@ Exp <- t(Exp)
 SDs <- apply(Exp,2,sd)　#2番目の引数で2を指定しているので、各列に対して関数を適用することになる。
 orderedGenes <- names(SDs[order(SDs, decreasing = TRUE)[1:3000]])
 Exp <- Exp[, orderedGenes]
+
+#export
+write.csv(Exp, "C:/Users/tomsh/OneDrive/デスクトップ/研究テーマ/TCGAPAADdata/preprocess_data/PAAD_Exp.csv", row.names = FALSE)
