@@ -95,15 +95,17 @@ Exp <- Exp[, intersect(colnames(Exp), rownames(dfcolData))]
        #"pancreas-adenocarcinoma-other subtype","pancreas-adenocarcinoma ductal type"
        #のみに絞る
 Exp <- t(Exp)
-sum(is.na(Exp[, 'BRCA2']))
+#sum(is.na(Exp[, 'TP53']))
 
 #発現変動が小さすぎる遺伝子のデータは取り除く
-##NAデータそのままでsd計算した場合
 SDs <- apply(Exp,2,sd)　#2番目の引数で2を指定しているので、各列に対して関数を適用することになる。
 orderedGenes <- names(SDs[order(SDs, decreasing = TRUE)[1:2000]])
 Exp <- Exp[, orderedGenes]
+  #--->なんかよく知られてる遺伝子めっちゃ消えちゃったんだけど、、、
+       #でも元の論文のやつも有名な遺伝子ないね
 
-##NAデータを0で埋めて計算した場合
+#遺伝子発現量で降順に並べてみると？
+
 
 
 ##
